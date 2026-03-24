@@ -1,0 +1,11 @@
+关闭AE
+将CameraProjection.aex、data.json、data.obj三个文件复制到AE安装目录下的Plug-ins文件夹内
+重新打开AE
+
+目前插件仅在Win环境的AE 2024下完成测试，如果出现异常情况请联系作者（Jom是咸鱼）
+
+
+Close AE
+Copy the three files—CameraProjection.aex, data.json, and data.obj—into the Plug-ins folder within the AE installation directory
+Reopen AE
+Currently, the plugin has only been tested on Win environment with AE 2024. If any abnormal issues occur, please contact the author.
