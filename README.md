@@ -54,8 +54,6 @@ After Effects Camera Projection plugin example repository.
 	- Adobe 示例工程常见的工具代码与封装。
 	- 主要用于简化 Suite 调用、字符串处理、通道处理、Smart Render 辅助等通用工作。
 
-一句话概括：`Source` 负责“开发和编译插件”。
-
 ### Plugins
 
 `Plugins` 是运行时分发目录，适合直接给 AE 使用或交付测试。
@@ -81,11 +79,9 @@ After Effects Camera Projection plugin example repository.
 	- 当前说明要求关闭 AE 后，将 `CameraProjection.aex`、`data.json`、`data.obj` 复制到 AE 安装目录下的 `Plug-ins` 文件夹，再重新打开 AE。
 	- 说明中还提到该插件目前主要在 Windows 环境下的 AE 2024 中完成测试。
 
-一句话概括：`Plugins` 负责“给 AE 直接运行的插件和示例数据”。
-
 ### FBX
 
-`FBX` 目录提供 DCC 软件侧使用的参考资源。
+`FBX` 目录提供 DCC 软件侧使用的参考资源,负责“DCC 制作阶段的参考场景和动画对位基准”。
 
 根据 `readme.txt`，这一目录中的 FBX 文件主要用于：
 
@@ -99,11 +95,9 @@ After Effects Camera Projection plugin example repository.
 - 现阶段参数导出程序仅适配 3ds Max，其他 DCC 软件还在适配中。
 - 导入后建议输出分辨率设置为 `2000 x 1600`，或保持相同比例的分辨率。
 
-一句话概括：`FBX` 负责“DCC 制作阶段的参考场景和动画对位基准”。
-
 ### AE_Project
 
-`AE_Project` 是 AE 侧的示例与验收目录，当前包含：
+`AE_Project` 是 AE 侧的演示项目效果和提供校验参考，当前包含：
 
 - `裸眼动画校准.aep`
 	- After Effects 示例工程。
@@ -112,8 +106,6 @@ After Effects Camera Projection plugin example repository.
 - `裸眼动画01_preview.avi`
 	- 对应的预览视频。
 	- 适合在不打开工程的情况下快速查看最终效果或对照输出结果。
-
-一句话概括：`AE_Project` 负责“演示项目效果和提供校验参考”。
 
 ## 推荐工作流
 
@@ -129,4 +121,3 @@ After Effects Camera Projection plugin example repository.
 - 需要维护或继续开发 AE 原生插件的开发者。
 - 需要复用裸眼动画校准流程的项目成员。
 
-如果后续要继续扩展仓库，建议把 `Plugins` 中示例数据的来源、AE 中的使用步骤，以及 3ds Max 导出脚本的操作方式再单独补成一份更细的使用文档。
