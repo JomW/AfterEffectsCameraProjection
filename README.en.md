@@ -54,8 +54,6 @@ Key contents:
   - Common utility code from Adobe sample projects.
   - Mainly used to simplify Suite access, string handling, channel processing, and Smart Render related helpers.
 
-In one sentence: `Source` is where the plugin is developed and built.
-
 ### Plugins
 
 `Plugins` is the runtime distribution directory, intended for direct use inside AE or for test delivery.
@@ -81,11 +79,9 @@ Main files:
   - The current instructions say to close AE, copy `CameraProjection.aex`, `data.json`, and `data.obj` into the AE installation `Plug-ins` folder, then reopen AE.
   - It also notes that the plugin has mainly been tested on Windows with AE 2024.
 
-In one sentence: `Plugins` contains the plugin and sample data used directly by AE.
-
 ### FBX
 
-The `FBX` folder provides reference assets for DCC-side production.
+The `FBX` folder provides reference assets for DCC-side use and serves as the reference scene and animation alignment baseline for the DCC production stage.
 
 According to `readme.txt`, the FBX files in this directory are mainly used to:
 
@@ -99,11 +95,9 @@ The existing notes also make two things explicit:
 - The export toolchain is currently adapted for 3ds Max only; support for other DCC tools is still in progress.
 - After import, the output resolution is recommended to be set to `2000 x 1600`, or another resolution with the same aspect ratio.
 
-In one sentence: `FBX` provides the reference scene and alignment baseline for the DCC production stage.
-
 ### AE_Project
 
-`AE_Project` is the AE-side sample and validation directory. It currently contains:
+`AE_Project` is used on the AE side to demonstrate the project result and provide a validation reference. It currently contains:
 
 - `裸眼动画校准.aep`
   - A sample After Effects project.
@@ -112,8 +106,6 @@ In one sentence: `FBX` provides the reference scene and alignment baseline for t
 - `裸眼动画01_preview.avi`
   - A preview video for the corresponding result.
   - Useful for quickly reviewing the final effect without opening the AE project.
-
-In one sentence: `AE_Project` is used to demonstrate the effect and provide a validation reference.
 
 ## Recommended Workflow
 
@@ -128,5 +120,3 @@ In one sentence: `AE_Project` is used to demonstrate the effect and provide a va
 - Technical artists who need to sync camera and mesh relationships from DCC tools into AE.
 - Developers who need to maintain or extend a native After Effects plugin.
 - Team members who want to reuse the naked-eye animation calibration workflow.
-
-If the repository is expanded later, a good next step would be to add a more detailed usage guide covering the origin of the sample data in `Plugins`, the AE-side operation steps, and the exact workflow for the 3ds Max export scripts.
