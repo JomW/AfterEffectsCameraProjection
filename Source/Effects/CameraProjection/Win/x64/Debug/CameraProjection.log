@@ -4,4 +4,7 @@
   CameraProjection_Strings.cpp
   正在生成代码...
     正在创建库 x64\Debug\CameraProjection.lib 和对象 x64\Debug\CameraProjection.exp
-  CameraProjection.vcxproj -> D:\Adobe\Adobe After Effects 2024\Support Files\Plug-ins\CameraProjection.aex
+CameraProjection.obj : error LNK2019: 无法解析的外部符号 __imp__CrtDbgReport，函数 "void * __cdecl std::_Allocate_manually_vector_aligned<struct std::_Default_allocate_traits>(unsigned __int64)" (??$_Allocate_manually_vector_aligned@U_Default_allocate_traits@std@@@std@@YAPEAX_K@Z) 中引用了该符号
+msvcprtd.lib(locale0_implib.obj) : error LNK2019: 无法解析的外部符号 __imp__free_dbg，函数 "public: static void __cdecl std::_Fac_node::operator delete(void *)" (??3_Fac_node@std@@SAXPEAX@Z) 中引用了该符号
+msvcprtd.lib(locale0_implib.obj) : error LNK2019: 无法解析的外部符号 __imp__malloc_dbg，函数 "public: static void * __cdecl std::_Fac_node::operator new(unsigned __int64)" (??2_Fac_node@std@@SAPEAX_K@Z) 中引用了该符号
+D:\Adobe\Adobe After Effects 2024\Support Files\Plug-ins\CameraProjection.aex : fatal error LNK1120: 3 个无法解析的外部命令

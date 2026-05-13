@@ -98,7 +98,29 @@ namespace {
 		std::shared_ptr<const MeshData> meshP;
 	};
 
+#ifdef AE_OS_WIN
+	static SRWLOCK g_scene_cache_lock = SRWLOCK_INIT;
+
+	struct SceneCacheReadLock {
+		SceneCacheReadLock() noexcept {
+			AcquireSRWLockShared(&g_scene_cache_lock);
+		}
+		~SceneCacheReadLock() noexcept {
+			ReleaseSRWLockShared(&g_scene_cache_lock);
+		}
+	};
+
+	struct SceneCacheWriteLock {
+		SceneCacheWriteLock() noexcept {
+			AcquireSRWLockExclusive(&g_scene_cache_lock);
+		}
+		~SceneCacheWriteLock() noexcept {
+			ReleaseSRWLockExclusive(&g_scene_cache_lock);
+		}
+	};
+#else
 	static std::mutex g_scene_cache_mutex;
+#endif
 	static std::shared_ptr<const SceneCacheSnapshot> g_scene_cache;
 
 #ifdef AE_OS_WIN
@@ -763,7 +785,11 @@ namespace {
 		std::shared_ptr<const SceneCacheSnapshot> snapshot;
 
 		{
+#ifdef AE_OS_WIN
+			SceneCacheReadLock lock;
+#else
 			std::lock_guard<std::mutex> lock(g_scene_cache_mutex);
+#endif
 			if (SceneCacheMatchesPathsAndTimes(g_scene_cache, sd.obj_path, sd.json_path)) {
 				snapshot = g_scene_cache;
 			}
@@ -790,7 +816,11 @@ namespace {
 			}
 
 			{
+#ifdef AE_OS_WIN
+				SceneCacheWriteLock lock;
+#else
 				std::lock_guard<std::mutex> lock(g_scene_cache_mutex);
+#endif
 				if (SceneCacheMatchesPathsAndTimes(g_scene_cache, sd.obj_path, sd.json_path)) {
 					snapshot = g_scene_cache;
 				}
@@ -1609,7 +1639,7 @@ namespace {
 		float fov_from_zoom = 0.0f;
 		if (camera.zoom > 1e-5f) {
 			fov_from_zoom = 2.0f * std::atan((camera.comp_height * 0.5f) / camera.zoom) * 180.0f / kPi;
-		}
+				}
 
 		ProjectionStats stats_json_neg;
 		ProjectionStats stats_identity_neg;

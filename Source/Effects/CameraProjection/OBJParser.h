@@ -18,6 +18,7 @@
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <cstdlib>
 
 // Vector structures
 struct Vec2 {
@@ -97,6 +98,16 @@ struct CameraData {
 // OBJ Parser
 class OBJParser {
 public:
+	struct FaceVertexIndices {
+		int v;
+		int vt;
+		int vn;
+
+		FaceVertexIndices()
+			: v(-1), vt(-1), vn(-1) {
+		}
+	};
+
 	static bool LoadOBJ(const char* filepath, MeshData& mesh) {
 		mesh.clear();
 		
@@ -130,45 +141,45 @@ public:
 				mesh.normals.push_back(vn);
 			}
 			else if (prefix == "f") {
-				// Face (supporting format: v/vt/vn)
-				Face face;
-				std::string vertex_data[3];
-				
-				for (int i = 0; i < 3; i++) {
-					if (!(iss >> vertex_data[i])) {
+				std::vector<FaceVertexIndices> polygon_vertices;
+				std::string vertex_token;
+				bool face_valid = true;
+
+				while (iss >> vertex_token) {
+					if (!vertex_token.empty() && vertex_token[0] == '#') {
 						break;
 					}
-					
-					// Parse v/vt/vn format
-					size_t pos1 = vertex_data[i].find('/');
-					size_t pos2 = vertex_data[i].find('/', pos1 + 1);
-					
-					if (pos1 != std::string::npos) {
-						face.v[i] = std::stoi(vertex_data[i].substr(0, pos1)) - 1;
-						
-						if (pos2 != std::string::npos) {
-							// Has vt and vn
-							std::string vt_str = vertex_data[i].substr(pos1 + 1, pos2 - pos1 - 1);
-							if (!vt_str.empty()) {
-								face.vt[i] = std::stoi(vt_str) - 1;
-							}
-							face.vn[i] = std::stoi(vertex_data[i].substr(pos2 + 1)) - 1;
-						}
-						else {
-							// Only has vt
-							std::string vt_str = vertex_data[i].substr(pos1 + 1);
-							if (!vt_str.empty()) {
-								face.vt[i] = std::stoi(vt_str) - 1;
-							}
-						}
+
+					FaceVertexIndices parsed_vertex;
+					if (!ParseFaceVertexToken(vertex_token,
+						static_cast<int>(mesh.vertices.size()),
+						static_cast<int>(mesh.uvs.size()),
+						static_cast<int>(mesh.normals.size()),
+						parsed_vertex)) {
+						face_valid = false;
+						break;
 					}
-					else {
-						// Only vertex index
-						face.v[i] = std::stoi(vertex_data[i]) - 1;
-					}
+
+					polygon_vertices.push_back(parsed_vertex);
 				}
-				
-				mesh.faces.push_back(face);
+
+				if (!face_valid || polygon_vertices.size() < 3) {
+					continue;
+				}
+
+				const FaceVertexIndices& v0 = polygon_vertices[0];
+				for (size_t i = 1; i + 1 < polygon_vertices.size(); ++i) {
+					Face tri_face;
+					if (!BuildTriangleFace(v0, polygon_vertices[i], polygon_vertices[i + 1], tri_face)) {
+						continue;
+					}
+
+					if (IsDegenerateTriangle(tri_face, mesh)) {
+						continue;
+					}
+
+					mesh.faces.push_back(tri_face);
+				}
 			}
 		}
 		
@@ -219,6 +230,111 @@ public:
 		
 		file.close();
 		return true;
+	}
+
+private:
+	static bool ParseOBJIndex(const std::string& token, int value_count, int& out_index) {
+		if (token.empty()) {
+			return false;
+		}
+
+		char* end_ptr = nullptr;
+		const long raw_index = std::strtol(token.c_str(), &end_ptr, 10);
+		if (end_ptr == token.c_str() || *end_ptr != '\0' || raw_index == 0) {
+			return false;
+		}
+
+		long resolved_index = raw_index;
+		if (raw_index > 0) {
+			resolved_index = raw_index - 1;
+		}
+		else {
+			resolved_index = static_cast<long>(value_count) + raw_index;
+		}
+
+		if (resolved_index < 0 || resolved_index >= value_count) {
+			return false;
+		}
+
+		out_index = static_cast<int>(resolved_index);
+		return true;
+	}
+
+	static bool ParseFaceVertexToken(const std::string& token,
+		int vertex_count,
+		int uv_count,
+		int normal_count,
+		FaceVertexIndices& out_vertex) {
+		const size_t pos1 = token.find('/');
+		if (pos1 == std::string::npos) {
+			return ParseOBJIndex(token, vertex_count, out_vertex.v);
+		}
+
+		const std::string v_str = token.substr(0, pos1);
+		if (!ParseOBJIndex(v_str, vertex_count, out_vertex.v)) {
+			return false;
+		}
+
+		const size_t pos2 = token.find('/', pos1 + 1);
+		if (pos2 == std::string::npos) {
+			const std::string vt_str = token.substr(pos1 + 1);
+			if (!vt_str.empty() && !ParseOBJIndex(vt_str, uv_count, out_vertex.vt)) {
+				return false;
+			}
+			return true;
+		}
+
+		const std::string vt_str = token.substr(pos1 + 1, pos2 - pos1 - 1);
+		if (!vt_str.empty() && !ParseOBJIndex(vt_str, uv_count, out_vertex.vt)) {
+			return false;
+		}
+
+		const std::string vn_str = token.substr(pos2 + 1);
+		if (!vn_str.empty() && !ParseOBJIndex(vn_str, normal_count, out_vertex.vn)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	static bool BuildTriangleFace(const FaceVertexIndices& a,
+		const FaceVertexIndices& b,
+		const FaceVertexIndices& c,
+		Face& out_face) {
+		if (a.v < 0 || b.v < 0 || c.v < 0) {
+			return false;
+		}
+
+		out_face.v[0] = a.v;
+		out_face.v[1] = b.v;
+		out_face.v[2] = c.v;
+		out_face.vt[0] = a.vt;
+		out_face.vt[1] = b.vt;
+		out_face.vt[2] = c.vt;
+		out_face.vn[0] = a.vn;
+		out_face.vn[1] = b.vn;
+		out_face.vn[2] = c.vn;
+		return true;
+	}
+
+	static bool IsDegenerateTriangle(const Face& face, const MeshData& mesh) {
+		if (face.v[0] == face.v[1] || face.v[1] == face.v[2] || face.v[2] == face.v[0]) {
+			return true;
+		}
+
+		if (face.v[0] < 0 || face.v[1] < 0 || face.v[2] < 0 ||
+			face.v[0] >= static_cast<int>(mesh.vertices.size()) ||
+			face.v[1] >= static_cast<int>(mesh.vertices.size()) ||
+			face.v[2] >= static_cast<int>(mesh.vertices.size())) {
+			return true;
+		}
+
+		const Vec3& p0 = mesh.vertices[face.v[0]];
+		const Vec3& p1 = mesh.vertices[face.v[1]];
+		const Vec3& p2 = mesh.vertices[face.v[2]];
+		const Vec3 cross = (p1 - p0).cross(p2 - p0);
+		const float area_sq = cross.dot(cross);
+		return area_sq <= 1.0e-12f;
 	}
 };
 
